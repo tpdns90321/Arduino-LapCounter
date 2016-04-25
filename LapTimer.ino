@@ -72,7 +72,7 @@ class RaceTimer{
 	private:
 	LapTimer *lt;
 	byte mode;
-        byte num;
+	byte num;
 	void reset();
 	void selectMode();
 
@@ -84,26 +84,26 @@ class RaceTimer{
 	void setNum(byte n);
 };
 
-void timeFormat(char **ch,int num,bool semi){
+void timeFormat(char *ch,int num,bool semi){
 	if (num < 10){
-		sprintf(*ch,"0%d",num);
+		sprintf(ch,"0%d",num);
 	}else{
-		sprintf(*ch,"%d",num);
+		sprintf(ch,"%d",num);
 	}
 
-	(*ch) += strlen(*ch);
+	ch += strlen(ch);
 	
 	if (semi){
-		sprintf(*ch,":");
-		(*ch) += 1;
+		sprintf(ch,":");
+		ch += 1;
 	}
 }
 
 void Time::refreshText(){
 	char* ch = text;
-	timeFormat(&ch,minute,true);
-	timeFormat(&ch,second,true);
-	timeFormat(&ch,milli100p,false);
+	timeFormat(ch,minute,true);
+	timeFormat(ch,second,true);
+	timeFormat(ch,milli100p,false);
 }
 
 void Time::set(long milli){

@@ -68,6 +68,22 @@ class LapTimer : public TextTimer{
 	void print();
 };
 
+class RaceTimer{
+	private:
+	LapTimer *lt;
+	byte mode;
+        byte num;
+	void reset();
+	void selectMode();
+
+	public:
+	RaceTimer(byte m, byte n, LapTimer* lt) : mode(m), num(n), lt(lt){};
+	void stop();
+	void start();
+	void setMode(byte m);
+	void setNum(byte n);
+};
+
 void timeFormat(char **ch,int num,bool semi){
 	if (num < 10){
 		sprintf(*ch,"0%d",num);
@@ -140,6 +156,43 @@ void LapTimer::print(){
 	lcd.print(getText());
 }
 
+void RaceTimer::reset(){
+	lcd.clear();
+	stop();
+}
+
+void RaceTimer::selectMode(){
+	select(mode){
+		case 0:
+		break;
+		case 1:
+		break;
+		case 2:
+		break;
+	}
+}
+
+void RaceTimer::stop(){
+	for(int i = 0;i < num;i++){
+		(lt + i)->stopTimer();
+	}
+}
+
+void RaceTimer::start(){
+	reset();
+	selectMode();
+}
+
+void RaceTimer::setMode(byte m){
+	reset();
+	mode = m;
+}
+
+void RaceTimer::setNum(byte n){
+	reset();
+	num = n;
+}
+
 LapTimer lt[4];
 
 void timerRefresh(){
@@ -161,23 +214,12 @@ void setup(){
 	lcd.clear();
 }
 
-int state;
-
 void loop(){
 	noInterrupts();
 	int data = ul.Timing();
 	interrupts();
 
 	if (data < 300){
-		if (state > 8){
-			state = 0;
-		}
-		if (state < 4){
-			lt[state].startTimer();
-		}else if(state < 8){
-			lt[state % 4].stopTimer();
-		}
-		state++;
 		delay(100);
 	}
 

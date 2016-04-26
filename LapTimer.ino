@@ -187,7 +187,7 @@ void RaceTimer::start(){
 	enable = true;
 }
 
-void RaceTimer::timeAttack{
+void RaceTimer::timeAttack(){
 	if(state < num){
 		(lt + state)->startTimer();
 	}else if(state >= num && state < (num * 2)){
@@ -198,7 +198,7 @@ void RaceTimer::timeAttack{
 	state++;
 }
 
-void RaceTimer::lapTimer(){
+void RaceTimer::lapAttack(){
 	if(num < state && currentlap == 0){
 		(lt + state)->startTimer();
 	}else if(currentlap == (lap - 1) && num < state){
@@ -212,6 +212,7 @@ void RaceTimer::lapTimer(){
 		state = 0;
 		currentlap++;
 	}
+}
 
 void RaceTimer::enter(){
 	if (!enable){
@@ -244,6 +245,8 @@ void timerRefresh(){
 	}
 }
 
+RaceTimer rt = RaceTimer(4,1,lt);
+
 void setup(){
 	lcd.begin(16,2);
 
@@ -251,6 +254,8 @@ void setup(){
 		lt[i] = LapTimer();
 		lt[i].setup(i);
 	}
+
+  rt.start();
 
 	MsTimer2::set(MILLIDELAY,timerRefresh);
 	MsTimer2::start();
@@ -263,6 +268,7 @@ void loop(){
 	interrupts();
 
 	if (data < 300){
+    rt.enter();
 		delay(100);
 	}
 

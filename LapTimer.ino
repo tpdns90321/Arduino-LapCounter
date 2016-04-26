@@ -73,6 +73,7 @@ class RaceTimer{
 	LapTimer *lt;
 	byte mode;
 	byte num;
+  byte state;
 	void reset();
 	void selectMode();
 
@@ -80,6 +81,7 @@ class RaceTimer{
 	RaceTimer(byte m, byte n, LapTimer* lt) : mode(m), num(n), lt(lt){};
 	void stop();
 	void start();
+  void enter();
 	void setMode(byte m);
 	void setNum(byte n);
 };
@@ -162,7 +164,7 @@ void RaceTimer::reset(){
 }
 
 void RaceTimer::selectMode(){
-	select(mode){
+	switch(mode){
 		case 0:
 		break;
 		case 1:
@@ -181,6 +183,15 @@ void RaceTimer::stop(){
 void RaceTimer::start(){
 	reset();
 	selectMode();
+}
+
+void RaceTimer::enter(){
+  if(state < num){
+    (lt + state)->startTimer();
+  }else if(state >= num && state < (num * 2)){
+    (lt + (state % num))->stopTimer();
+  }
+  state++;
 }
 
 void RaceTimer::setMode(byte m){

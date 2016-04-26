@@ -27,7 +27,6 @@ class Time{
 	protected:
 	bool enable;
 	void set(long milli);
-	void clear();
 	char* getText();
 
 	public:
@@ -38,6 +37,7 @@ class Time{
 	~Time(){
 		clear();
 	}
+	void clear();
 };
 
 class TextTimer : public Time{
@@ -73,15 +73,20 @@ class RaceTimer{
 	LapTimer *lt;
 	byte mode;
 	byte num;
-  byte state;
+	byte lap;
+	byte state;
+	byte currentlap;
+	bool enable;
 	void reset();
 	void selectMode();
+	void timeAttack();
+	void lapAttack();
 
 	public:
-	RaceTimer(byte m, byte n, LapTimer* lt) : mode(m), num(n), lt(lt){};
+	RaceTimer(byte m, byte n, LapTimer* lt) : mode(m), num(n), lt(lt), enable(false) {};
 	void stop();
 	void start();
-  void enter();
+	void enter();
 	void setMode(byte m);
 	void setNum(byte n);
 };
@@ -161,46 +166,73 @@ void LapTimer::print(){
 void RaceTimer::reset(){
 	lcd.clear();
 	stop();
+	for(int i = 0;i < 4;i++){
+		(lt + i)->clear();
+	}
 }
 
 void RaceTimer::selectMode(){
-	switch(mode){
-		case 0:
-		break;
-		case 1:
-		break;
-		case 2:
-		break;
-	}
 }
 
 void RaceTimer::stop(){
 	for(int i = 0;i < num;i++){
 		(lt + i)->stopTimer();
 	}
+	enable = false;
 }
 
 void RaceTimer::start(){
 	reset();
 	selectMode();
+	enable = true;
 }
 
+void RaceTimer::timeAttack{
+	if(state < num){
+		(lt + state)->startTimer();
+	}else if(state >= num && state < (num * 2)){
+		(lt + (state % num))->stopTimer();
+	}else {
+		stop();
+	}
+	state++;
+}
+
+void RaceTimer::lapTimer(){
+	if(num < state && currentlap == 0){
+		(lt + state)->startTimer();
+	}else if(currentlap == (lap - 1) && num < state){
+		(lt + state)->stopTimer();
+	}else if(currentlap >= lap){
+		stop();
+	}
+
+	state++;
+	if(num>=state){
+		state = 0;
+		currentlap++;
+	}
+
 void RaceTimer::enter(){
-  if(state < num){
-    (lt + state)->startTimer();
-  }else if(state >= num && state < (num * 2)){
-    (lt + (state % num))->stopTimer();
-  }
-  state++;
+	if (!enable){
+		return;
+	}
+
+	switch(mode){
+		case 1:
+		timeAttack();
+		break;
+		case 2:
+		lapAttack();
+		break;
+	}
 }
 
 void RaceTimer::setMode(byte m){
-	reset();
 	mode = m;
 }
 
 void RaceTimer::setNum(byte n){
-	reset();
 	num = n;
 }
 

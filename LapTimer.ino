@@ -12,6 +12,8 @@
 #define MILLIDELAY 25
 #define U_TRIG 7
 #define U_ECHO 8
+#define COUNTBUTTON 0
+#define CONFBUTTON 0
 
 LiquidCrystal lcd(LC_RS,LC_E,LC_1,LC_2,LC_3,LC_4);
 Ultrasonic ul(U_TRIG,U_ECHO);
@@ -76,19 +78,23 @@ class RaceTimer{
 	byte lap;
 	byte state;
 	byte currentlap;
+	int countButton;
+	int confButton;
 	bool enable;
 	void reset();
+  void numberSelect(byte &num,const byte limit);
 	void selectMode();
 	void timeAttack();
 	void lapAttack();
 
 	public:
-	RaceTimer(byte m, byte n, LapTimer* lt) : mode(m), num(n), lt(lt), enable(false) {};
+	RaceTimer(byte m, byte n,int p1, int p2, LapTimer* lt) : mode(m), num(n),countButton(p1),confButton(p2), lt(lt), enable(false) {
+		pinMode(countButton,INPUT);
+		pinMode(confButton,INPUT);
+	}
 	void stop();
 	void start();
 	void enter();
-	void setMode(byte m);
-	void setNum(byte n);
 };
 
 void timeFormat(char *ch,int num,bool semi){
@@ -171,7 +177,52 @@ void RaceTimer::reset(){
 	}
 }
 
+bool ButtonClick(const int button){
+	if(digitalRead(button) == HIGH){
+		while(digitalRead(button) == HIGH){
+			delay(MILLIDELAY * 5);
+		}
+	}
+	return false;
+}
+
+void RaceTimer::numberSelect(byte &num,const byte limit){
+	int st = 1;
+	while(true){
+		lcd.setCursor(4,0);
+		lcd.print(st);
+		if(ButtonClick(confButton)){
+			num = st;
+			break;
+		}
+		if(ButtonClick(countButton)){
+			st++;
+			if(st >= limit){
+				st = 1;
+			}
+		}
+   delay(MILLIDELAY);
+	}
+}
+
+void setPrint(char *set){
+	lcd.setCursor(4,0);
+	lcd.print(set);
+}
+
 void RaceTimer::selectMode(){
+  noInterrupts();
+	setPrint("mode");
+	numberSelect(mode,3);
+	switch(mode){
+		case 2:
+		setPrint("lap");
+		numberSelect(lap,5);
+		break;
+	}
+	setPrint("car");
+	numberSelect(num,5);
+  interrupts();
 }
 
 void RaceTimer::stop(){
@@ -229,14 +280,6 @@ void RaceTimer::enter(){
 	}
 }
 
-void RaceTimer::setMode(byte m){
-	mode = m;
-}
-
-void RaceTimer::setNum(byte n){
-	num = n;
-}
-
 LapTimer lt[4];
 
 void timerRefresh(){
@@ -245,7 +288,7 @@ void timerRefresh(){
 	}
 }
 
-RaceTimer rt = RaceTimer(4,1,lt);
+RaceTimer rt = RaceTimer(4,1,COUNTBUTTON,CONFBUTTON,lt);
 
 void setup(){
 	lcd.begin(16,2);
@@ -255,7 +298,7 @@ void setup(){
 		lt[i].setup(i);
 	}
 
-  rt.start();
+	rt.start();
 
 	MsTimer2::set(MILLIDELAY,timerRefresh);
 	MsTimer2::start();
@@ -268,9 +311,9 @@ void loop(){
 	interrupts();
 
 	if (data < 300){
-    rt.enter();
-		delay(100);
+		rt.enter();
+		delay(MILLIDELAY * 10);
 	}
 
-	delay(10);
+	delay(MILLIDELAY);
 }

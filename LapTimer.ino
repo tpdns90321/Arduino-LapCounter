@@ -201,7 +201,7 @@ void RaceTimer::numberSelect(byte &num,const byte limit){
 				st = 1;
 			}
 		}
-   delay(MILLIDELAY);
+		delay(MILLIDELAY);
 	}
 }
 
@@ -211,7 +211,7 @@ void setPrint(char *set){
 }
 
 void RaceTimer::selectMode(){
-  noInterrupts();
+	noInterrupts();
 	setPrint("mode");
 	numberSelect(mode,3);
 	switch(mode){
@@ -222,7 +222,7 @@ void RaceTimer::selectMode(){
 	}
 	setPrint("car");
 	numberSelect(num,5);
-  interrupts();
+	interrupts();
 }
 
 void RaceTimer::stop(){

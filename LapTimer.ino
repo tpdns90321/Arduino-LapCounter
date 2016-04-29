@@ -12,8 +12,8 @@
 #define MILLIDELAY 25
 #define U_TRIG 7
 #define U_ECHO 8
-#define COUNTBUTTON 0
-#define CONFBUTTON 0
+#define COUNTBUTTON A5
+#define CONFBUTTON A5
 
 LiquidCrystal lcd(LC_RS,LC_E,LC_1,LC_2,LC_3,LC_4);
 Ultrasonic ul(U_TRIG,U_ECHO);
@@ -88,35 +88,36 @@ class RaceTimer{
 	void lapAttack();
 
 	public:
-	RaceTimer(byte m, byte n,int p1, int p2, LapTimer* lt) : mode(m), num(n),countButton(p1),confButton(p2), lt(lt), enable(false) {
-		pinMode(countButton,INPUT);
-		pinMode(confButton,INPUT);
+	RaceTimer(byte m, byte n,int p1, int p2, LapTimer* lt) : mode(m), num(n),state(0),currentlap(0),countButton(p1),confButton(p2), lt(lt), enable(false) {
+		pinMode(countButton,INPUT_PULLUP);
+		pinMode(confButton,INPUT_PULLUP);
 	}
+ 
 	void stop();
 	void start();
 	void enter();
 };
 
-void timeFormat(char *ch,int num,bool semi){
+void timeFormat(char **ch,int num,bool semi){
 	if (num < 10){
-		sprintf(ch,"0%d",num);
+		sprintf(*ch,"0%d",num);
 	}else{
-		sprintf(ch,"%d",num);
+		sprintf(*ch,"%d",num);
 	}
 
-	ch += strlen(ch);
+	*ch += strlen(*ch);
 	
 	if (semi){
-		sprintf(ch,":");
-		ch += 1;
+		sprintf(*ch,":");
+		*ch += 1;
 	}
 }
 
 void Time::refreshText(){
 	char* ch = text;
-	timeFormat(ch,minute,true);
-	timeFormat(ch,second,true);
-	timeFormat(ch,milli100p,false);
+	timeFormat(&ch,minute,true);
+	timeFormat(&ch,second,true);
+	timeFormat(&ch,milli100p,false);
 }
 
 void Time::set(long milli){
@@ -178,10 +179,11 @@ void RaceTimer::reset(){
 }
 
 bool ButtonClick(const int button){
-	if(digitalRead(button) == HIGH){
-		while(digitalRead(button) == HIGH){
+	if(digitalRead(button) == LOW){
+		while(digitalRead(button) == LOW){
 			delay(MILLIDELAY * 5);
 		}
+   return true;
 	}
 	return false;
 }
@@ -189,7 +191,7 @@ bool ButtonClick(const int button){
 void RaceTimer::numberSelect(byte &num,const byte limit){
 	int st = 1;
 	while(true){
-		lcd.setCursor(4,0);
+		lcd.setCursor(4,1);
 		lcd.print(st);
 		if(ButtonClick(confButton)){
 			num = st;
@@ -216,10 +218,12 @@ void RaceTimer::selectMode(){
 	numberSelect(mode,3);
 	switch(mode){
 		case 2:
+   lcd.clear();
 		setPrint("lap");
 		numberSelect(lap,5);
 		break;
 	}
+ lcd.clear();
 	setPrint("car");
 	numberSelect(num,5);
   interrupts();

@@ -9,11 +9,12 @@
 #define LC_3 3
 #define LC_4 2
 #define LC_Back 13
-#define MILLIDELAY 25
+#define MILLIDELAY 10
 #define U_TRIG 7
 #define U_ECHO 8
 #define COUNTBUTTON A2
 #define CONFBUTTON A3
+#define SENSORED 700
 
 LiquidCrystal lcd(LC_RS,LC_E,LC_1,LC_2,LC_3,LC_4);
 Ultrasonic ul(U_TRIG,U_ECHO);
@@ -82,6 +83,7 @@ class RaceTimer{
 	int confButton;
 	bool enable;
 	void reset();
+	void numberSelect(byte &num,const byte m, const byte limit);
 	void numberSelect(byte &num,const byte limit);
 	void selectMode();
 	void timeAttack();
@@ -189,8 +191,8 @@ bool ButtonClick(const int button){
 	return false;
 }
 
-void RaceTimer::numberSelect(byte &num,const byte limit){
-	int st = 1;
+void RaceTimer::numberSelect(byte &num,const byte m, const byte limit){
+	int st = m;
 	while(true){
 		lcd.setCursor(4,1);
 		lcd.print(st);
@@ -201,11 +203,15 @@ void RaceTimer::numberSelect(byte &num,const byte limit){
 		if(ButtonClick(countButton)){
 			st++;
 			if(st >= limit){
-				st = 1;
+				st = m;
 			}
 		}
 		delay(MILLIDELAY);
 	}
+}
+
+void RaceTimer::numberSelect(byte &num,const byte limit){
+  numberSelect(num,1,limit);
 }
 
 void setPrint(char *set){
@@ -220,7 +226,7 @@ void RaceTimer::selectMode(){
 		case 2:
 		lcd.clear();
 		setPrint("lap");
-		numberSelect(lap,5);
+		numberSelect(lap,2,5);
 		break;
 	}
 	lcd.clear();
@@ -335,7 +341,7 @@ void loop(){
 	int data = ul.Timing();
 	interrupts();
 
-	if (data < 690){
+	if (data < SENSORED){
 		rt.enter();
 		delay(MILLIDELAY * 10);
 	}
